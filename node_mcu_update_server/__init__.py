@@ -5,9 +5,6 @@ import hashlib
 from node_mcu_update_server import update_manager
 
 class NodeMCUUpdateServer(http.server.SimpleHTTPRequestHandler):
-    VERSION_PATTERN = "^[a-zA-Z0-9]{6}\\-[0-9]{1,2}\\.[0-9]{1,3}\\.[0-9]{1,4}$"
-    versionMatcher = re.compile(VERSION_PATTERN)
-    
     def calculate_md5_sum(self, file_path):
         file_bytes = self.file_as_bytes(file_path)
         return hashlib.md5(file_bytes).hexdigest()
@@ -17,6 +14,7 @@ class NodeMCUUpdateServer(http.server.SimpleHTTPRequestHandler):
             return file_handle.read()
 
     def send_update_file_to_client(self, path_to_update):
+        print("sending update file to device: " + path_to_update)
         file_name = os.path.basename(path_to_update)
         file_size = os.stat(path_to_update).st_size
         update_md5 = self.calculate_md5_sum(path_to_update)
@@ -47,7 +45,6 @@ class NodeMCUUpdateServer(http.server.SimpleHTTPRequestHandler):
         print("Received " + self.command + " from client address:" + str(self.client_address))
         print("with headers: ")
         print(self.headers)
-
         if self.is_valid_update_request():
             device_version = self.headers["x-ESP8266-version"]
             if update_manager.update_exists(device_version):
